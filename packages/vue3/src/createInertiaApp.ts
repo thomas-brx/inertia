@@ -30,7 +30,7 @@ export default async function createInertiaApp({
 }: CreateInertiaAppProps): Promise<{ head: string[]; body: string }> {
   const isServer = typeof window === 'undefined'
   const el = isServer ? null : document.getElementById(id)
-  const initialPage = page || JSON.parse(el.dataset.page)
+  const initialPage = page || JSON.parse(document.getElementById(id + '-page-data').textContent)
   const resolveComponent = (name) => Promise.resolve(resolve(name)).then((module) => module.default || module)
 
   let head = []
@@ -57,12 +57,13 @@ export default async function createInertiaApp({
   if (isServer) {
     const body = await render(
       createSSRApp({
-        render: () =>
+        render: () => [
+          h('script', { id: id + '-page-data', type: 'application/json', innerHTML: JSON.stringify(initialPage) }),
           h('div', {
             id,
-            'data-page': JSON.stringify(initialPage),
             innerHTML: vueApp ? render(vueApp) : '',
           }),
+        ]
       }),
     )
 
