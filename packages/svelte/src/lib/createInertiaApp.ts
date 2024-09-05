@@ -37,7 +37,7 @@ export default async function createInertiaApp({
 }: CreateInertiaAppProps): InertiaAppResponse {
   const isServer = typeof window === 'undefined'
   const el = isServer ? null : document.getElementById(id)
-  const initialPage = page || JSON.parse(el?.dataset.page ?? '{}')
+  const initialPage = page || JSON.parse(document.getElementById(id + '-page-data')?.textContent || el?.dataset.page || '{}')
   const resolveComponent = (name: string) => Promise.resolve(resolve(name))
 
   await resolveComponent(initialPage.component).then((initialComponent) => {
