@@ -1,5 +1,5 @@
 import { Page, PageProps, PageResolver, setupProgress } from '@inertiajs/core'
-import { ComponentType, FunctionComponent, Key, ReactElement, ReactNode, createElement } from 'react'
+import { ComponentType, Fragment, FunctionComponent, Key, ReactElement, ReactNode, createElement } from 'react'
 import { renderToString } from 'react-dom/server'
 import App from './App'
 
@@ -76,7 +76,7 @@ export default async function createInertiaApp<SharedProps extends PageProps = P
 > {
   const isServer = typeof window === 'undefined'
   const el = isServer ? null : document.getElementById(id)
-  const initialPage = page || JSON.parse(el.dataset.page)
+  const initialPage = page || JSON.parse(document.getElementById(id + '-page-data')?.textContent || el.dataset.page)
   // @ts-expect-error
   const resolveComponent = (name) => Promise.resolve(resolve(name)).then((module) => module.default || module)
 
@@ -104,14 +104,25 @@ export default async function createInertiaApp<SharedProps extends PageProps = P
   if (isServer) {
     const body = await render(
       createElement(
-        'div',
-        {
-          id,
-          'data-page': JSON.stringify(initialPage),
-        },
-        // @ts-expect-error
-        reactApp,
-      ),
+        Fragment,
+        null,
+        createElement(
+          'script',
+          {
+            id: id + '-page-data',
+            type: 'application/json',
+            dangerouslySetInnerHTML: { __html: JSON.stringify(initialPage) },
+          }
+        ),
+        createElement(
+          'div',
+          {
+            id,
+          },
+          // @ts-expect-error
+          reactApp,
+        )
+      )
     )
 
     return { head, body }
